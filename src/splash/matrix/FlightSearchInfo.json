@@ -1,0 +1,8 @@
+{
+	"splash_url" : "http://192.168.99.100:8050/render.html",
+	"base_url" : "https://www.google.co.in/flights/#search;sc=e;mc=c;",
+	"source": "SFO",
+	"dest"  : "HNL",
+	"start_date" : "2016-01-22",
+	"to_date" : "2016-02-08"
+}
