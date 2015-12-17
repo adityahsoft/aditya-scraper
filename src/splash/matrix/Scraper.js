@@ -3,8 +3,9 @@
  */
 
 var request = require('request'),
-		fs  = require('fs'),
+		fs = require('fs'),
 		htmlparser = require('htmlparser2'),
+		moment = require('moment'),
 		CLASS_NAMES = require('./ScraperConstants').CLASS_NAMES;
 
 
@@ -12,8 +13,14 @@ function MatrixScraper() {
 	var searchInfo = JSON.parse(fs.readFileSync('FlightSearchInfo.json', 'utf8'));
 	var baseUrl = searchInfo.base_url;
 	this._splashUrl = searchInfo.splash_url;
+	var los = parseInt(searchInfo.los);
+
+	var returnDate = new Date(new Date(searchInfo.start_date).getTime() + los * 24 * 60 * 60 * 1000).toString();
+	returnDate = moment(returnDate).format("YYYY-MM-DD");
 	//Construct search url
-	this._searchUrl = baseUrl.concat("f=", searchInfo.source, ";", "t=", searchInfo.dest, ";", "d=", searchInfo.start_date, ";", "r=", searchInfo.to_date);
+	this._searchUrl =
+			baseUrl.concat("f=", searchInfo.source, ";", "t=", searchInfo.dest, ";", "d=", searchInfo.start_date, ";",
+					"r=", returnDate);
 	this._dateAndPrices = {};
 }
 
@@ -32,11 +39,8 @@ MatrixScraper.prototype.searchFlights = function () {
 				var className = attribs["class"];
 
 				if (name === "table") {
-					if (className.indexOf(CLASS_NAMES.LHS_TABLE.name) != -1) {
-						currentMonth = lhsMonth;
-					} else if (className.indexOf(CLASS_NAMES.RHS_TABLE.name) != -1) {
-						currentMonth = rhsMonth;
-					}
+					currentMonth = (className.indexOf(CLASS_NAMES.LHS_TABLE.name) != -1) ? lhsMonth :
+							(className.indexOf(CLASS_NAMES.RHS_TABLE.name) != -1) ? rhsMonth : undefined;
 				}
 				if (name === "div" && "class" in attribs) {
 					if (className.indexOf(CLASS_NAMES.FARE_VALUE.name) != -1) {
@@ -72,5 +76,6 @@ MatrixScraper.prototype.searchFlights = function () {
 		console.log("Date And prices " + JSON.stringify(dateAndPrices));
 	}));
 };
+
 
 new MatrixScraper().searchFlights();
